@@ -61,12 +61,12 @@ User → Frontend → Flask → YOLO → n8n → Email Alert 🚨
 
     <h2>📂 Project Structure</h2>
     <pre>
-road-ai-project/
-│
-├── backend/
-├── frontend/
-├── dataset/ (excluded)
-├── README.html
+road-ai-project/<br>
+│<br>
+├── backend/<br>
+├── frontend/<br>
+├── dataset/ (excluded)<br>
+├── README.html<br>
     </pre>
 
     <h2>⚙️ Setup</h2>
