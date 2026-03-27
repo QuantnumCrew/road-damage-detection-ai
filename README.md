@@ -105,15 +105,6 @@ Response:
         This project shows how AI + Automation can improve road safety and smart city infrastructure.
     </p>
 
-    <h2>👩‍💻 Team</h2>
-    <ul>
-        <li>Jayashree.B.R (Team Lead)</li>
-        <li>Gopika Govindammal.P</li>
-        <li>Harsha Varthini.A</li>
-        <li>Hashwin Raj.K</li>
-        <li>Hariharan.R</li>
-    </ul>
-
     <h3>⭐ Give this project a star on GitHub!</h3>
 
 </body>
