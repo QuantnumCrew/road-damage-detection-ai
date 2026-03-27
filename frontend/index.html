@@ -1,0 +1,2334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RoadScan AI — Road Damage Detection System</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050a0f;
+    --bg2: #0a1220;
+    --bg3: #0f1c2e;
+    --surface: #0d1929;
+    --surface2: #142236;
+    --border: rgba(0,200,255,0.12);
+    --accent: #00c8ff;
+    --accent2: #ff6b2b;
+    --accent3: #39ff6e;
+    --warning: #ffcc00;
+    --danger: #ff3b3b;
+    --text: #e8f4ff;
+    --text2: #7fa8cc;
+    --text3: #4a7a99;
+    --glow: rgba(0,200,255,0.15);
+    --glow2: rgba(255,107,43,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* ─── GRID BACKGROUND ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,200,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 40px;
+    background: rgba(5,10,15,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: -0.5px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .nav-logo .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.7); }
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 8px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: var(--text2);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+  }
+
+  .nav-links a:hover, .nav-links a.active {
+    color: var(--accent);
+    background: rgba(0,200,255,0.08);
+  }
+
+  .nav-cta {
+    background: var(--accent);
+    color: #000 !important;
+    font-weight: 700 !important;
+    border-radius: 6px;
+  }
+
+  .nav-cta:hover { background: #33d4ff !important; color: #000 !important; }
+
+  /* ─── SECTIONS ─── */
+  section { position: relative; z-index: 1; }
+
+  /* ─── HERO ─── */
+  #home {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 120px 40px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-glow {
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,200,255,0.08) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+  }
+
+  .hero-glow2 {
+    position: absolute;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,107,43,0.06) 0%, transparent 70%);
+    top: 30%; right: 10%;
+    pointer-events: none;
+  }
+
+  .hero-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+    width: 100%;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,200,255,0.08);
+    border: 1px solid rgba(0,200,255,0.25);
+    border-radius: 100px;
+    padding: 6px 14px 6px 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    margin-bottom: 24px;
+    animation: fadeInUp 0.6s ease both;
+  }
+
+  .hero-badge .blink {
+    width: 6px; height: 6px;
+    background: var(--accent3);
+    border-radius: 50%;
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(42px, 5vw, 68px);
+    line-height: 1.05;
+    letter-spacing: -2px;
+    margin-bottom: 20px;
+    animation: fadeInUp 0.6s 0.1s ease both;
+  }
+
+  .hero-title span { color: var(--accent); }
+  .hero-title .orange { color: var(--accent2); }
+
+  .hero-desc {
+    font-size: 17px;
+    color: var(--text2);
+    line-height: 1.7;
+    margin-bottom: 36px;
+    max-width: 500px;
+    animation: fadeInUp 0.6s 0.2s ease both;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 12px;
+    animation: fadeInUp 0.6s 0.3s ease both;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 14px 28px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-primary:hover {
+    background: #33d4ff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0,200,255,0.3);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 14px 28px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,200,255,0.05);
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 32px;
+    margin-top: 48px;
+    animation: fadeInUp 0.6s 0.4s ease both;
+  }
+
+  .stat {
+    border-left: 2px solid var(--border);
+    padding-left: 16px;
+  }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 28px;
+    color: var(--accent);
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text3);
+    font-family: 'Space Mono', monospace;
+    margin-top: 2px;
+  }
+
+  /* ─── HERO VISUAL ─── */
+  .hero-visual {
+    animation: fadeInRight 0.8s 0.2s ease both;
+    position: relative;
+  }
+
+  @keyframes fadeInRight {
+    from { opacity: 0; transform: translateX(30px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .scan-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .scan-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface2);
+  }
+
+  .scan-header-dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .scan-header-dots span {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+
+  .scan-header-dots span:nth-child(1) { background: #ff5f57; }
+  .scan-header-dots span:nth-child(2) { background: #febc2e; }
+  .scan-header-dots span:nth-child(3) { background: #28c840; }
+
+  .scan-title-bar {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+  }
+
+  .scan-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .scan-road {
+    width: 100%;
+    height: 180px;
+    background: var(--bg3);
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .scan-road-img {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 60px;
+    position: relative;
+  }
+
+  /* Animated scan line */
+  .scan-line {
+    position: absolute;
+    left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    box-shadow: 0 0 20px var(--accent);
+    animation: scan 2.5s ease-in-out infinite;
+  }
+
+  @keyframes scan {
+    0% { top: 0; opacity: 1; }
+    100% { top: 100%; opacity: 0.3; }
+  }
+
+  /* Detection boxes */
+  .bbox {
+    position: absolute;
+    border: 2px solid;
+    border-radius: 3px;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    padding: 2px 5px;
+    font-weight: 700;
+  }
+
+  .bbox-label {
+    position: absolute;
+    top: -20px;
+    left: -1px;
+    padding: 2px 6px;
+    border-radius: 3px 3px 0 0;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .bbox-pothole {
+    border-color: var(--danger);
+    left: 20%; top: 40%;
+    width: 25%; height: 30%;
+  }
+
+  .bbox-pothole .bbox-label {
+    background: var(--danger);
+    color: #fff;
+  }
+
+  .bbox-crack {
+    border-color: var(--warning);
+    left: 60%; top: 25%;
+    width: 30%; height: 20%;
+  }
+
+  .bbox-crack .bbox-label {
+    background: var(--warning);
+    color: #000;
+  }
+
+  .scan-detections {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .detection-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg3);
+    border-radius: 8px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+  }
+
+  .detection-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .detection-icon {
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .detection-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  .detection-type {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .severity-badge {
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  .sev-high { background: rgba(255,59,59,0.15); color: var(--danger); border: 1px solid rgba(255,59,59,0.3); }
+  .sev-med { background: rgba(255,204,0,0.15); color: var(--warning); border: 1px solid rgba(255,204,0,0.3); }
+  .sev-low { background: rgba(57,255,110,0.15); color: var(--accent3); border: 1px solid rgba(57,255,110,0.3); }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── SECTION COMMON ─── */
+  .section-header {
+    text-align: center;
+    margin-bottom: 60px;
+  }
+
+  .section-tag {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(32px, 4vw, 48px);
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+  }
+
+  .section-desc {
+    color: var(--text2);
+    font-size: 16px;
+    margin-top: 12px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+  }
+
+  /* ─── DETECTION SECTION ─── */
+  #detection {
+    padding: 100px 40px;
+  }
+
+  .detect-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .panel-icon {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+  }
+
+  .panel-body {
+    padding: 24px;
+  }
+
+  /* Upload Zone */
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    background: rgba(0,200,255,0.02);
+  }
+
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--accent);
+    background: rgba(0,200,255,0.05);
+  }
+
+  .upload-zone input[type=file] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2;
+  }
+
+  .upload-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+
+  .upload-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .upload-sub {
+    font-size: 12px;
+    color: var(--text3);
+    font-family: 'Space Mono', monospace;
+  }
+
+  #preview-area {
+    display: none;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 16px;
+  }
+
+  #preview-area img {
+    width: 100%;
+    max-height: 240px;
+    object-fit: cover;
+    border-radius: 12px;
+    display: block;
+  }
+
+  #preview-area .remove-img {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: rgba(0,0,0,0.7);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 28px; height: 28px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .input-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text2);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .tab-btn.active, .tab-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,200,255,0.06);
+  }
+
+  #webcam-container {
+    display: none;
+  }
+
+  #webcam-container video {
+    width: 100%;
+    border-radius: 10px;
+    display: block;
+  }
+
+  .webcam-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .detect-btn {
+    width: 100%;
+    margin-top: 16px;
+    background: linear-gradient(135deg, var(--accent), #0090b8);
+    color: #000;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    padding: 16px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .detect-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0,200,255,0.3);
+  }
+
+  .detect-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .detect-btn .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(0,0,0,0.3);
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Results Panel */
+  .result-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    gap: 12px;
+    color: var(--text3);
+  }
+
+  .result-empty-icon { font-size: 48px; opacity: 0.4; }
+
+  .result-empty p {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    text-align: center;
+  }
+
+  #results-content { display: none; }
+
+  .result-image-box {
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    position: relative;
+    background: var(--bg3);
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .result-image-box img {
+    width: 100%;
+    max-height: 200px;
+    object-fit: contain;
+    display: block;
+  }
+
+  .result-detections { display: flex; flex-direction: column; gap: 10px; }
+
+  .result-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: fadeInUp 0.3s ease both;
+  }
+
+  .result-card-left { display: flex; flex-direction: column; gap: 4px; }
+  .result-damage-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; }
+  .result-meta { font-size: 11px; color: var(--text3); font-family: 'Space Mono', monospace; }
+
+  .result-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+
+  .confidence-bar-wrap { width: 100px; }
+  .confidence-label { font-size: 10px; color: var(--text3); font-family: 'Space Mono', monospace; margin-bottom: 3px; text-align: right; }
+  .confidence-bar {
+    height: 4px;
+    background: var(--bg2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .confidence-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s ease;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+  }
+
+  .report-trigger-btn {
+    margin-top: 16px;
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,107,43,0.4);
+    background: rgba(255,107,43,0.08);
+    color: var(--accent2);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .report-trigger-btn:hover {
+    background: rgba(255,107,43,0.15);
+    border-color: var(--accent2);
+  }
+
+  /* ─── REPORT SECTION ─── */
+  #report {
+    padding: 100px 40px;
+    background: linear-gradient(180deg, transparent, rgba(255,107,43,0.03), transparent);
+  }
+
+  .report-container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .report-form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  .report-form-top {
+    padding: 28px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .report-form-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .report-status-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--accent3);
+    background: rgba(57,255,110,0.08);
+    border: 1px solid rgba(57,255,110,0.25);
+    padding: 6px 12px;
+    border-radius: 100px;
+  }
+
+  .report-status-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent3); animation: pulse-dot 2s infinite; }
+
+  .report-form-body {
+    padding: 32px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-group.full { grid-column: 1 / -1; }
+
+  .form-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--text2);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .form-label .req { color: var(--accent2); }
+
+  .form-input, .form-select, .form-textarea {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+    width: 100%;
+  }
+
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,200,255,0.08);
+  }
+
+  .form-select { appearance: none; cursor: pointer; }
+  .form-textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+
+  .location-row {
+    display: flex;
+    gap: 10px;
+  }
+
+  .location-row .form-input { flex: 1; }
+
+  .gps-btn {
+    background: rgba(0,200,255,0.1);
+    border: 1px solid rgba(0,200,255,0.3);
+    color: var(--accent);
+    padding: 12px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+  }
+
+  .gps-btn:hover {
+    background: rgba(0,200,255,0.2);
+  }
+
+  .severity-selector {
+    display: flex;
+    gap: 10px;
+  }
+
+  .sev-option {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    color: var(--text2);
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .sev-option.selected-low { border-color: var(--accent3); background: rgba(57,255,110,0.08); color: var(--accent3); }
+  .sev-option.selected-medium { border-color: var(--warning); background: rgba(255,204,0,0.08); color: var(--warning); }
+  .sev-option.selected-high { border-color: var(--danger); background: rgba(255,59,59,0.08); color: var(--danger); }
+
+  .report-footer {
+    padding: 20px 32px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface2);
+  }
+
+  .report-info-text {
+    font-size: 12px;
+    color: var(--text3);
+    font-family: 'Space Mono', monospace;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .submit-btn {
+    background: linear-gradient(135deg, var(--accent2), #cc4400);
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    padding: 14px 28px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(255,107,43,0.35);
+  }
+
+  /* ─── DASHBOARD SECTION ─── */
+  #dashboard {
+    padding: 100px 40px;
+  }
+
+  .dashboard-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 20px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+
+  .stat-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .stat-card:nth-child(1)::after { background: var(--accent); }
+  .stat-card:nth-child(2)::after { background: var(--danger); }
+  .stat-card:nth-child(3)::after { background: var(--warning); }
+  .stat-card:nth-child(4)::after { background: var(--accent3); }
+
+  .stat-card-icon { font-size: 24px; margin-bottom: 12px; }
+  .stat-card-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 32px;
+    letter-spacing: -1px;
+  }
+  .stat-card-label { font-size: 12px; color: var(--text3); font-family: 'Space Mono', monospace; margin-top: 4px; }
+  .stat-card-change {
+    font-size: 11px;
+    color: var(--accent3);
+    font-family: 'Space Mono', monospace;
+    margin-top: 8px;
+  }
+
+  .dashboard-bottom {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 20px;
+  }
+
+  .chart-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+  }
+
+  .chart-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .damage-bars { display: flex; flex-direction: column; gap: 14px; }
+
+  .damage-bar-item {}
+  .damage-bar-info { display: flex; justify-content: space-between; margin-bottom: 6px; }
+  .damage-bar-name { font-family: 'Space Mono', monospace; font-size: 11px; }
+  .damage-bar-count { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--text3); }
+  .damage-bar-track { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+  .damage-bar-fill { height: 100%; border-radius: 3px; transition: width 1s ease; }
+
+  .report-table-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .report-table-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .view-all-link {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .report-table { width: 100%; border-collapse: collapse; }
+  .report-table th {
+    padding: 10px 16px;
+    background: var(--bg3);
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--text3);
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .report-table td {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .report-table tr:hover td { background: rgba(0,200,255,0.03); }
+
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+  }
+  .status-dot.pending { background: var(--warning); }
+  .status-dot.resolved { background: var(--accent3); }
+  .status-dot.reviewing { background: var(--accent); }
+
+  /* ─── TOAST ─── */
+  #toast-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .toast {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    min-width: 280px;
+    animation: slideUp 0.3s ease both;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  }
+
+  .toast.success { border-left: 3px solid var(--accent3); }
+  .toast.error { border-left: 3px solid var(--danger); }
+  .toast.info { border-left: 3px solid var(--accent); }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── MODAL ─── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 460px;
+    width: 90%;
+    text-align: center;
+    animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .modal-icon { font-size: 52px; margin-bottom: 16px; }
+  .modal-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; margin-bottom: 10px; }
+  .modal-desc { color: var(--text2); font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
+  .modal-btn {
+    background: var(--accent);
+    color: #000;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    padding: 12px 28px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px;
+    text-align: center;
+    color: var(--text3);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    position: relative;
+    z-index: 1;
+  }
+
+  footer .footer-brand {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--text);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    nav { padding: 14px 20px; }
+    .nav-links { display: none; }
+    .hero-content { grid-template-columns: 1fr; gap: 40px; }
+    #home { padding: 100px 20px 60px; }
+    .detect-container { grid-template-columns: 1fr; }
+    .dashboard-grid { grid-template-columns: repeat(2, 1fr); }
+    .dashboard-bottom { grid-template-columns: 1fr; }
+    .report-form-body { grid-template-columns: 1fr; }
+    #detection, #report, #dashboard { padding: 80px 20px; }
+  }
+
+  /* progress overlay */
+  .progress-overlay {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: rgba(5,10,15,0.9);
+    border-radius: 12px;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+    z-index: 5;
+  }
+
+  .progress-overlay.active { display: flex; }
+  .progress-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; }
+  .progress-sub { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--text3); }
+  .progress-bar-wrap { width: 200px; height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent3)); border-radius: 2px; animation: progress-anim 2s ease forwards; }
+  @keyframes progress-anim { from { width: 0; } to { width: 100%; } }
+</style>
+</head>
+<body>
+
+<!-- ─── NAV ─── -->
+<nav>
+  <div class="nav-logo">
+    <div class="dot"></div>
+    RoadScan<span style="color:var(--accent)">AI</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#home" class="active">Home</a></li>
+    <li><a href="#detection">Detect</a></li>
+    <li><a href="#dashboard">Dashboard</a></li>
+    <li><a href="#report">Report</a></li>
+    <li><a href="#report" class="nav-cta">Report Issue →</a></li>
+  </ul>
+</nav>
+
+<!-- ─── HERO ─── -->
+<section id="home">
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+  <div class="hero-content">
+    <div>
+      <div class="hero-badge">
+        <span class="blink"></span>
+        AI-POWERED ROAD INSPECTION SYSTEM
+      </div>
+      <h1 class="hero-title">
+        Detect Road<br>
+        <span>Damage.</span>
+        <span class="orange"> Report</span><br>
+        Instantly.
+      </h1>
+      <p class="hero-desc">
+        AI-based detection of potholes, cracks, and manholes using YOLOv8. Upload images or use your webcam to scan road conditions and auto-generate reports for authorities.
+      </p>
+      <div class="hero-actions">
+        <a href="#detection" class="btn-primary">⚡ Start Detection</a>
+        <a href="#report" class="btn-secondary">📋 Report Issue</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><div class="stat-num">3</div><div class="stat-label">DAMAGE TYPES</div></div>
+        <div class="stat"><div class="stat-num" id="counter-det">0</div><div class="stat-label">DETECTIONS</div></div>
+        <div class="stat"><div class="stat-num" id="counter-rep">0</div><div class="stat-label">REPORTS FILED</div></div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="scan-card">
+        <div class="scan-header">
+          <div class="scan-header-dots">
+            <span></span><span></span><span></span>
+          </div>
+          <div class="scan-title-bar">roadscan-ai — live analysis</div>
+          <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--accent)">● ACTIVE</div>
+        </div>
+        <div class="scan-body">
+          <div class="scan-road">
+            <div class="scan-road-img">🛣️</div>
+            <div class="scan-line"></div>
+            <div class="bbox bbox-pothole">
+              <div class="bbox-label">POTHOLE 94%</div>
+            </div>
+            <div class="bbox bbox-crack">
+              <div class="bbox-label">CRACK 87%</div>
+            </div>
+          </div>
+          <div class="scan-detections">
+            <div class="detection-item">
+              <div class="detection-left">
+                <div class="detection-icon" style="background:rgba(255,59,59,0.1)">🕳️</div>
+                <div>
+                  <div class="detection-name">Pothole</div>
+                  <div class="detection-type">CONF: 94.2% · BBOX: 220×180px</div>
+                </div>
+              </div>
+              <div class="severity-badge sev-high">HIGH</div>
+            </div>
+            <div class="detection-item">
+              <div class="detection-left">
+                <div class="detection-icon" style="background:rgba(255,204,0,0.1)">⚡</div>
+                <div>
+                  <div class="detection-name">Surface Crack</div>
+                  <div class="detection-type">CONF: 87.1% · BBOX: 310×80px</div>
+                </div>
+              </div>
+              <div class="severity-badge sev-med">MEDIUM</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── DETECTION SECTION ─── -->
+<section id="detection">
+  <div class="section-header">
+    <div class="section-tag">// DETECTION ENGINE</div>
+    <h2 class="section-title">Upload & Analyze</h2>
+    <p class="section-desc">Upload road images or use your webcam to detect and classify damage in real time.</p>
+  </div>
+
+  <div class="detect-container">
+    <!-- INPUT PANEL -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-icon" style="background:rgba(0,200,255,0.1)">📡</div>
+        Input Source
+      </div>
+      <div class="panel-body">
+        <div class="input-tabs">
+          <button class="tab-btn active" id="tab-upload" onclick="switchTab('upload')">📂 Upload Image</button>
+          <button class="tab-btn" id="tab-webcam" onclick="switchTab('webcam')">📷 Webcam</button>
+        </div>
+
+        <!-- Upload -->
+        <div id="upload-container">
+          <div class="upload-zone" id="drop-zone">
+            <input type="file" id="file-input" accept="image/*" onchange="handleFileSelect(event)">
+            <div class="upload-icon">📸</div>
+            <div class="upload-text">Drop image here or click to browse</div>
+            <div class="upload-sub">PNG, JPG, WEBP • Max 10MB</div>
+          </div>
+          <div id="preview-area">
+            <img id="preview-img" src="" alt="Preview">
+            <button class="remove-img" onclick="removeImage()">✕</button>
+          </div>
+        </div>
+
+        <!-- Webcam -->
+        <div id="webcam-container">
+          <video id="webcam-video" autoplay playsinline></video>
+          <div class="webcam-controls">
+            <button class="btn-secondary" style="flex:1; font-size:12px; padding:10px;" onclick="startWebcam()">▶ Start Camera</button>
+            <button class="btn-secondary" style="flex:1; font-size:12px; padding:10px;" onclick="captureWebcam()">📸 Capture</button>
+            <button class="btn-secondary" style="flex:1; font-size:12px; padding:10px;" onclick="stopWebcam()">■ Stop</button>
+          </div>
+        </div>
+
+        <button class="detect-btn" id="detect-btn" onclick="runDetection()">
+          <span class="spinner" id="detect-spinner"></span>
+          <span id="detect-btn-text">⚡ Run AI Detection</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- RESULTS PANEL -->
+    <div class="panel" style="position:relative">
+      <div class="panel-header">
+        <div class="panel-icon" style="background:rgba(57,255,110,0.1)">🧠</div>
+        Detection Results
+        <span id="result-count-badge" style="margin-left:auto; font-family:'Space Mono',monospace; font-size:10px; color:var(--text3);"></span>
+      </div>
+      <div class="panel-body">
+        <div class="result-empty" id="result-empty">
+          <div class="result-empty-icon">🔍</div>
+          <p>Upload an image and click<br>"Run AI Detection"</p>
+        </div>
+        <div id="results-content">
+          <div class="result-image-box">
+            <img id="result-img" src="" alt="Detection result">
+          </div>
+          <div class="result-detections" id="detections-list"></div>
+          <button class="report-trigger-btn" onclick="scrollToReport()">
+            🚨 Report This Issue to Authorities
+          </button>
+        </div>
+        <!-- progress overlay -->
+        <div class="progress-overlay" id="progress-overlay">
+          <div style="font-size:40px">🔬</div>
+          <div class="progress-title">Analyzing road damage...</div>
+          <div class="progress-sub" id="progress-step">Loading model</div>
+          <div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog-fill"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── REPORT SECTION ─── -->
+<section id="report">
+  <div class="section-header">
+    <div class="section-tag">// REPORT SYSTEM</div>
+    <h2 class="section-title">Report to Authorities</h2>
+    <p class="section-desc">Submit detected road damage to the relevant municipality for repair and follow-up.</p>
+  </div>
+
+  <div class="report-container">
+    <div class="report-form-card">
+      <div class="report-form-top">
+        <div class="report-form-title">🚨 Damage Report Submission</div>
+        <div class="report-status-badge"><span class="dot"></span> Encrypted & Secure</div>
+      </div>
+      <div class="report-form-body">
+        <div class="form-group">
+          <label class="form-label">Damage Type <span class="req">*</span></label>
+          <select class="form-select" id="report-damage-type">
+            <option value="">Select type...</option>
+            <option value="pothole">🕳️ Pothole</option>
+            <option value="crack">⚡ Surface Crack</option>
+            <option value="manhole">🔵 Manhole Issue</option>
+            <option value="multiple">⚠️ Multiple Damages</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Severity Level <span class="req">*</span></label>
+          <div class="severity-selector">
+            <div class="sev-option" onclick="selectSeverity(this,'low')">🟢 Low</div>
+            <div class="sev-option" onclick="selectSeverity(this,'medium')">🟡 Medium</div>
+            <div class="sev-option" onclick="selectSeverity(this,'high')">🔴 High</div>
+          </div>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">📍 Location <span class="req">*</span></label>
+          <div class="location-row">
+            <input class="form-input" id="report-location" type="text" placeholder="Enter street address or area name...">
+            <button class="gps-btn" onclick="getGPS()">📡 GPS</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Reporter Name</label>
+          <input class="form-input" id="report-name" type="text" placeholder="Your name (optional)">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contact (Email/Phone)</label>
+          <input class="form-input" id="report-contact" type="text" placeholder="email or phone">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Description <span class="req">*</span></label>
+          <textarea class="form-textarea" id="report-desc" placeholder="Describe the damage in detail — size, depth, hazard level, how long it's been there..."></textarea>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">AI Confidence Score</label>
+          <input class="form-input" id="report-confidence" type="text" placeholder="Auto-filled from detection..." readonly style="opacity:0.6">
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Image Proof</label>
+          <div class="upload-zone" style="padding:24px; position:relative;">
+            <input type="file" id="report-img-input" accept="image/*" onchange="handleReportImage(event)" style="position:absolute;inset:0;opacity:0;cursor:pointer;z-index:2">
+            <div style="font-size:24px; margin-bottom:6px">🖼️</div>
+            <div style="font-size:13px; font-weight:600">Attach image proof</div>
+            <div style="font-size:11px; color:var(--text3); font-family:'Space Mono',monospace">Auto-filled if detection was run</div>
+          </div>
+          <img id="report-img-preview" src="" style="display:none; width:100%; max-height:160px; object-fit:cover; border-radius:8px; margin-top:10px">
+        </div>
+      </div>
+      <div class="report-footer">
+        <div class="report-info-text">🔒 Reports are submitted to the local municipal database</div>
+        <button class="submit-btn" onclick="submitReport()">🚨 Submit Report →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── DASHBOARD SECTION ─── -->
+<section id="dashboard">
+  <div class="section-header">
+    <div class="section-tag">// ANALYTICS DASHBOARD</div>
+    <h2 class="section-title">Detection Overview</h2>
+    <p class="section-desc">Real-time statistics from the road damage detection and reporting system.</p>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="stat-card">
+      <div class="stat-card-icon">🔍</div>
+      <div class="stat-card-num" id="dash-total">0</div>
+      <div class="stat-card-label">TOTAL DETECTIONS</div>
+      <div class="stat-card-change">↑ Session data</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-icon">🕳️</div>
+      <div class="stat-card-num" id="dash-potholes">0</div>
+      <div class="stat-card-label">POTHOLES FOUND</div>
+      <div class="stat-card-change" style="color:var(--danger)">High priority</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-icon">⚡</div>
+      <div class="stat-card-num" id="dash-cracks">0</div>
+      <div class="stat-card-label">CRACKS DETECTED</div>
+      <div class="stat-card-change" style="color:var(--warning)">Medium priority</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-icon">📋</div>
+      <div class="stat-card-num" id="dash-reports">0</div>
+      <div class="stat-card-label">REPORTS FILED</div>
+      <div class="stat-card-change" style="color:var(--accent3)">All submitted</div>
+    </div>
+  </div>
+
+  <div class="dashboard-bottom">
+    <div class="chart-panel">
+      <div class="chart-title">📊 Damage Distribution</div>
+      <div class="damage-bars">
+        <div class="damage-bar-item">
+          <div class="damage-bar-info">
+            <span class="damage-bar-name" style="color:var(--danger)">Potholes</span>
+            <span class="damage-bar-count" id="bar-pothole-pct">0%</span>
+          </div>
+          <div class="damage-bar-track"><div class="damage-bar-fill" id="bar-pothole" style="width:0%; background:var(--danger)"></div></div>
+        </div>
+        <div class="damage-bar-item">
+          <div class="damage-bar-info">
+            <span class="damage-bar-name" style="color:var(--warning)">Surface Cracks</span>
+            <span class="damage-bar-count" id="bar-crack-pct">0%</span>
+          </div>
+          <div class="damage-bar-track"><div class="damage-bar-fill" id="bar-crack" style="width:0%; background:var(--warning)"></div></div>
+        </div>
+        <div class="damage-bar-item">
+          <div class="damage-bar-info">
+            <span class="damage-bar-name" style="color:var(--accent)">Manholes</span>
+            <span class="damage-bar-count" id="bar-manhole-pct">0%</span>
+          </div>
+          <div class="damage-bar-track"><div class="damage-bar-fill" id="bar-manhole" style="width:0%; background:var(--accent)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="report-table-panel">
+      <div class="report-table-header">
+        📋 Recent Reports
+        <span class="view-all-link">View all →</span>
+      </div>
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Type</th>
+            <th>Location</th>
+            <th>Severity</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="reports-tbody">
+          <tr><td colspan="5" style="text-align:center; padding:30px; color:var(--text3); font-family:'Space Mono',monospace; font-size:11px;">No reports yet — submit a report to see it here</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div class="footer-brand"><div style="width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)"></div> RoadScanAI</div>
+  <p>AI-Based Road Damage Detection & Reporting System · Built with YOLOv8 + Flask</p>
+  <p style="margin-top:6px; color:var(--text3)">Hackathon Project · 2025</p>
+</footer>
+
+<!-- ─── TOAST CONTAINER ─── -->
+<div id="toast-container"></div>
+
+<!-- ─── SUCCESS MODAL ─── -->
+<div class="modal-overlay" id="success-modal">
+  <div class="modal-box">
+    <div class="modal-icon">✅</div>
+    <div class="modal-title">Report Submitted!</div>
+    <div class="modal-desc">Your road damage report has been successfully submitted to the municipal database. Authorities have been notified and will review the issue shortly.</div>
+    <button class="modal-btn" onclick="closeModal()">Done</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ══════════════════════════════════════════════════
+  //  ⚙️  CONFIG — Supabase + n8n + Flask
+  // ══════════════════════════════════════════════════
+  const SUPABASE_URL  = 'https://pjlwnrbsrphaokimeuqw.supabase.co';
+  const SUPABASE_KEY  = 'sb_publishable_GrE3E-zYTyzrKtMBxZjMvw_MSfcomdm';
+  const N8N_WEBHOOK   = 'https://jayashree2k007.app.n8n.cloud/webhook/road-damage';
+  const BACKEND_URL   = 'http://localhost:5000';   // Flask — change if deployed
+
+  // ── Init Supabase client ──
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // ══════════════════════════════════════════════════
+  //  🗂️  STATE
+  // ══════════════════════════════════════════════════
+  const state = {
+    detections: [],
+    reports: [],
+    counters: { total: 0, potholes: 0, cracks: 0, manholes: 0 },
+    selectedFile: null,
+    webcamStream: null,
+    capturedFrame: null,
+    selectedSeverity: '',
+    lastDetection: null,
+    imageBase64: null,      // base64 for Supabase Storage upload
+  };
+
+  // ── Mock detections (demo fallback) ──
+  const MOCK_DETECTIONS = [
+    { type: 'Pothole',       confidence: 0.942, severity: 'HIGH',   bbox: [120, 80,  340, 260] },
+    { type: 'Surface Crack', confidence: 0.871, severity: 'MEDIUM', bbox: [300, 50,  610, 130] }
+  ];
+
+  // ══════════════════════════════════════════════════
+  //  🛠️  UTILS
+  // ══════════════════════════════════════════════════
+  function animateCounter(el, target, duration = 1200) {
+    if (!el) return;
+    let start = parseInt(el.textContent) || 0;
+    const diff = target - start;
+    if (diff === 0) return;
+    const step = diff / (duration / 16);
+    const timer = setInterval(() => {
+      start = Math.min(start + step, target);
+      el.textContent = Math.floor(start);
+      if (start >= target) clearInterval(timer);
+    }, 16);
+  }
+
+  function showToast(type, icon, message) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(10px)';
+      toast.style.transition = 'all 0.3s';
+      setTimeout(() => toast.remove(), 300);
+    }, 3500);
+  }
+
+  function genId(prefix = 'RPT') {
+    return `${prefix}-${Date.now().toString(36).toUpperCase()}`;
+  }
+
+  // ══════════════════════════════════════════════════
+  //  📂  SUPABASE HELPERS
+  // ══════════════════════════════════════════════════
+
+  /**
+   * Upload a file blob to Supabase Storage bucket "road-images".
+   * Returns the public URL or null on failure.
+   */
+  async function uploadImageToSupabase(file, folder = 'detections') {
+    try {
+      const ext  = file.name.split('.').pop() || 'jpg';
+      const path = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+      const { data, error } = await sb.storage
+        .from('road-images')
+        .upload(path, file, { cacheControl: '3600', upsert: false });
+      if (error) throw error;
+      const { data: urlData } = sb.storage.from('road-images').getPublicUrl(path);
+      return urlData.publicUrl;
+    } catch (err) {
+      console.warn('[Supabase Storage] Upload failed:', err.message);
+      return null;
+    }
+  }
+
+  /**
+   * Save a detection record to Supabase table "detections".
+   */
+  async function saveDetectionToSupabase(payload) {
+    try {
+      const { data, error } = await sb.from('detections').insert([payload]).select();
+      if (error) throw error;
+      return data?.[0] ?? null;
+    } catch (err) {
+      console.warn('[Supabase] Detection save failed:', err.message);
+      return null;
+    }
+  }
+
+  /**
+   * Save a report record to Supabase table "reports".
+   */
+  async function saveReportToSupabase(payload) {
+    try {
+      const { data, error } = await sb.from('reports').insert([payload]).select();
+      if (error) throw error;
+      return data?.[0] ?? null;
+    } catch (err) {
+      console.warn('[Supabase] Report save failed:', err.message);
+      return null;
+    }
+  }
+
+  /**
+   * Load reports from Supabase on startup.
+   */
+  async function loadReportsFromSupabase() {
+    try {
+      const { data, error } = await sb
+        .from('reports')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data ?? [];
+    } catch (err) {
+      console.warn('[Supabase] Load reports failed:', err.message);
+      return [];
+    }
+  }
+
+  /**
+   * Load aggregated stats from Supabase.
+   */
+  async function loadStatsFromSupabase() {
+    try {
+      const [detRes, repRes] = await Promise.all([
+        sb.from('detections').select('damage_types, created_at', { count: 'exact' }),
+        sb.from('reports').select('id', { count: 'exact' }),
+      ]);
+      const totalDet = detRes.count ?? 0;
+      const totalRep = repRes.count ?? 0;
+
+      // Count damage types
+      let ph = 0, cr = 0, mh = 0;
+      (detRes.data ?? []).forEach(row => {
+        try {
+          const types = JSON.parse(row.damage_types ?? '[]');
+          types.forEach(t => {
+            const tl = t.toLowerCase();
+            if (tl.includes('pothole')) ph++;
+            else if (tl.includes('crack')) cr++;
+            else if (tl.includes('manhole')) mh++;
+          });
+        } catch {}
+      });
+
+      return { totalDet, totalRep, ph, cr, mh };
+    } catch (err) {
+      console.warn('[Supabase] Stats load failed:', err.message);
+      return null;
+    }
+  }
+
+  // ══════════════════════════════════════════════════
+  //  🔔  n8n WEBHOOK TRIGGER
+  // ══════════════════════════════════════════════════
+  async function triggerN8nWebhook(report) {
+    try {
+      const res = await fetch(N8N_WEBHOOK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          report_id:    report.id,
+          damage_type:  report.damage_type,
+          severity:     report.severity,
+          location:     report.location,
+          description:  report.description,
+          reporter:     report.reporter_name || 'Anonymous',
+          contact:      report.contact || '',
+          image_url:    report.image_url || '',
+          confidence:   report.confidence || '',
+          timestamp:    report.created_at,
+          source:       'RoadScan AI Web App',
+        })
+      });
+      if (res.ok) {
+        showToast('success', '⚡', 'n8n workflow triggered — authorities notified!');
+      } else {
+        console.warn('[n8n] Webhook returned', res.status);
+        showToast('info', '🔔', 'Report saved. n8n notification pending.');
+      }
+    } catch (err) {
+      console.warn('[n8n] Webhook failed:', err.message);
+      showToast('info', '🔔', 'Report saved to Supabase. n8n offline.');
+    }
+  }
+
+  // ══════════════════════════════════════════════════
+  //  🖥️  UI — TAB / INPUT
+  // ══════════════════════════════════════════════════
+  function switchTab(tab) {
+    document.getElementById('tab-upload').classList.toggle('active', tab === 'upload');
+    document.getElementById('tab-webcam').classList.toggle('active', tab === 'webcam');
+    document.getElementById('upload-container').style.display = tab === 'upload' ? 'block' : 'none';
+    document.getElementById('webcam-container').style.display = tab === 'webcam' ? 'block' : 'none';
+    if (tab !== 'webcam') stopWebcam();
+  }
+
+  function handleFileSelect(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    state.selectedFile = file;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      state.imageBase64 = ev.target.result;
+      document.getElementById('preview-img').src = ev.target.result;
+      document.getElementById('preview-area').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+    showToast('info', '📂', `Image loaded: ${file.name}`);
+  }
+
+  function removeImage() {
+    state.selectedFile = null;
+    state.imageBase64 = null;
+    document.getElementById('preview-area').style.display = 'none';
+    document.getElementById('file-input').value = '';
+  }
+
+  // Drag & Drop
+  const dropZone = document.getElementById('drop-zone');
+  dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      state.selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        state.imageBase64 = ev.target.result;
+        document.getElementById('preview-img').src = ev.target.result;
+        document.getElementById('preview-area').style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+      showToast('info', '📂', 'Image dropped successfully');
+    }
+  });
+
+  // ── Webcam ──
+  async function startWebcam() {
+    try {
+      state.webcamStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      document.getElementById('webcam-video').srcObject = state.webcamStream;
+      showToast('success', '📷', 'Webcam started');
+    } catch {
+      showToast('error', '❌', 'Cannot access webcam');
+    }
+  }
+
+  function captureWebcam() {
+    const video = document.getElementById('webcam-video');
+    if (!state.webcamStream) { showToast('error', '❌', 'Start webcam first'); return; }
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    state.capturedFrame = canvas.toDataURL('image/jpeg');
+    state.imageBase64 = state.capturedFrame;
+    showToast('success', '📸', 'Frame captured!');
+  }
+
+  function stopWebcam() {
+    if (state.webcamStream) {
+      state.webcamStream.getTracks().forEach(t => t.stop());
+      state.webcamStream = null;
+    }
+  }
+
+  // ══════════════════════════════════════════════════
+  //  🧠  DETECTION PIPELINE
+  // ══════════════════════════════════════════════════
+  async function runDetection() {
+    const isUpload = document.getElementById('tab-upload').classList.contains('active');
+    if (isUpload && !state.selectedFile) { showToast('error', '❌', 'Please upload an image first'); return; }
+    if (!isUpload && !state.capturedFrame) { showToast('error', '❌', 'Capture a webcam frame first'); return; }
+
+    // Button loading state
+    const btn      = document.getElementById('detect-btn');
+    const spinner  = document.getElementById('detect-spinner');
+    const btnText  = document.getElementById('detect-btn-text');
+    btn.disabled   = true;
+    spinner.style.display = 'block';
+    btnText.textContent   = 'Analyzing...';
+
+    // Progress overlay
+    const overlay  = document.getElementById('progress-overlay');
+    overlay.classList.add('active');
+    const steps    = ['Loading YOLO model...', 'Uploading to Supabase...', 'Running inference...', 'Saving results...'];
+    let si = 0;
+    const stepInterval = setInterval(() => {
+      if (si < steps.length) document.getElementById('progress-step').textContent = steps[si++];
+    }, 550);
+
+    let imagePublicUrl = null;
+
+    try {
+      // 1️⃣ Upload image to Supabase Storage
+      if (state.selectedFile) {
+        showToast('info', '☁️', 'Uploading image to Supabase...');
+        imagePublicUrl = await uploadImageToSupabase(state.selectedFile, 'detections');
+        if (imagePublicUrl) showToast('success', '✅', 'Image stored in Supabase');
+      }
+
+      // 2️⃣ Call Flask backend for YOLO detection
+      let result;
+      try {
+        const formData = new FormData();
+        if (state.selectedFile) formData.append('image', state.selectedFile);
+        const response = await fetch(`${BACKEND_URL}/detect`, { method: 'POST', body: formData });
+        if (!response.ok) throw new Error('Backend error');
+        result = await response.json();
+      } catch {
+        // Demo fallback
+        await new Promise(r => setTimeout(r, 1800));
+        result = { detections: MOCK_DETECTIONS, image_url: imagePublicUrl };
+        showToast('info', '🤖', 'Backend offline — using demo detections');
+      }
+
+      // 3️⃣ Merge Supabase image URL into result
+      if (imagePublicUrl) result.image_url = imagePublicUrl;
+
+      // 4️⃣ Save detection record to Supabase
+      const detPayload = {
+        image_url:    imagePublicUrl ?? result.image_url ?? null,
+        damage_types: JSON.stringify(result.detections.map(d => d.type)),
+        severities:   JSON.stringify(result.detections.map(d => d.severity)),
+        confidences:  JSON.stringify(result.detections.map(d => d.confidence)),
+        count:        result.detections.length,
+      };
+      const saved = await saveDetectionToSupabase(detPayload);
+      if (saved) showToast('success', '🗄️', 'Detection saved to Supabase');
+
+      displayResults(result);
+
+    } catch (err) {
+      console.error('[Detection]', err);
+      showToast('error', '❌', 'Detection error — showing demo');
+      displayResults({ detections: MOCK_DETECTIONS, image_url: imagePublicUrl });
+    } finally {
+      clearInterval(stepInterval);
+      overlay.classList.remove('active');
+      btn.disabled = false;
+      spinner.style.display = 'none';
+      btnText.textContent = '⚡ Run AI Detection';
+    }
+  }
+
+  function displayResults(result) {
+    const { detections, image_url } = result;
+    state.lastDetection = result;
+
+    document.getElementById('result-empty').style.display = 'none';
+    document.getElementById('results-content').style.display = 'block';
+
+    // Show image
+    const imgSrc = image_url || (state.selectedFile ? URL.createObjectURL(state.selectedFile) : '');
+    if (imgSrc) {
+      document.getElementById('result-img').src = imgSrc;
+      document.getElementById('report-img-preview').src = imgSrc;
+      document.getElementById('report-img-preview').style.display = 'block';
+    }
+
+    // Render detection cards
+    const list = document.getElementById('detections-list');
+    list.innerHTML = '';
+    detections.forEach((det, i) => {
+      const card     = document.createElement('div');
+      card.className = 'result-card';
+      card.style.animationDelay = `${i * 0.1}s`;
+      const sevClass = det.severity === 'HIGH' ? 'sev-high' : det.severity === 'MEDIUM' ? 'sev-med' : 'sev-low';
+      const icon     = det.type.toLowerCase().includes('pothole') ? '🕳️' : det.type.toLowerCase().includes('crack') ? '⚡' : '🔵';
+      const confPct  = Math.round(det.confidence * 100);
+      card.innerHTML = `
+        <div class="result-card-left">
+          <div class="detection-name">${icon} ${det.type}</div>
+          <div class="result-meta">Confidence: ${confPct}% · Severity: ${det.severity}</div>
+        </div>
+        <div class="result-card-right">
+          <div class="severity-badge ${sevClass}">${det.severity}</div>
+          <div class="confidence-bar-wrap">
+            <div class="confidence-label">${confPct}%</div>
+            <div class="confidence-bar"><div class="confidence-fill" style="width:${confPct}%"></div></div>
+          </div>
+        </div>`;
+      list.appendChild(card);
+
+      // Update local counters
+      state.counters.total++;
+      if (det.type.toLowerCase().includes('pothole'))     state.counters.potholes++;
+      else if (det.type.toLowerCase().includes('crack'))  state.counters.cracks++;
+      else if (det.type.toLowerCase().includes('manhole'))state.counters.manholes++;
+    });
+
+    document.getElementById('result-count-badge').textContent =
+      `${detections.length} issue${detections.length !== 1 ? 's' : ''} found`;
+
+    // Auto-fill report form from top detection
+    if (detections.length > 0) {
+      const top = detections[0];
+      const sel = document.getElementById('report-damage-type');
+      const v   = top.type.toLowerCase().includes('pothole') ? 'pothole'
+                : top.type.toLowerCase().includes('crack')   ? 'crack'
+                : top.type.toLowerCase().includes('manhole') ? 'manhole' : '';
+      if (v) sel.value = v;
+      document.getElementById('report-confidence').value = `${Math.round(top.confidence * 100)}% (${top.type})`;
+      const sev = top.severity === 'HIGH' ? 'high' : top.severity === 'MEDIUM' ? 'medium' : 'low';
+      document.querySelectorAll('.sev-option').forEach(o => o.classList.remove('selected-low','selected-medium','selected-high'));
+      document.querySelectorAll('.sev-option').forEach(o => {
+        if (o.textContent.toLowerCase().includes(sev)) { o.classList.add(`selected-${sev}`); state.selectedSeverity = sev; }
+      });
+    }
+
+    updateDashboard();
+    showToast('success', '✅', `${detections.length} damage(s) detected`);
+  }
+
+  // ══════════════════════════════════════════════════
+  //  📋  REPORT FLOW  (Supabase + n8n)
+  // ══════════════════════════════════════════════════
+  function selectSeverity(el, sev) {
+    document.querySelectorAll('.sev-option').forEach(o => o.classList.remove('selected-low','selected-medium','selected-high'));
+    el.classList.add(`selected-${sev}`);
+    state.selectedSeverity = sev;
+  }
+
+  async function getGPS() {
+    if (!navigator.geolocation) { showToast('error', '❌', 'Geolocation not supported'); return; }
+    showToast('info', '📡', 'Getting your location...');
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      const { latitude, longitude } = pos.coords;
+      try {
+        const res  = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
+        const data = await res.json();
+        document.getElementById('report-location').value = data.display_name || `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+        showToast('success', '📍', 'Location fetched via GPS');
+      } catch {
+        document.getElementById('report-location').value = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+      }
+    }, () => showToast('error', '❌', 'Could not get location'));
+  }
+
+  function handleReportImage(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      document.getElementById('report-img-preview').src = ev.target.result;
+      document.getElementById('report-img-preview').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function submitReport() {
+    const damageType = document.getElementById('report-damage-type').value;
+    const location   = document.getElementById('report-location').value;
+    const desc       = document.getElementById('report-desc').value;
+
+    if (!damageType || !location || !desc) {
+      showToast('error', '❌', 'Please fill in Damage Type, Location and Description');
+      return;
+    }
+
+    const submitBtn = document.querySelector('.submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.textContent = '⏳ Submitting...';
+
+    // Upload report proof image to Supabase Storage if a new one was attached
+    let proofImageUrl = null;
+    const proofInput  = document.getElementById('report-img-input');
+    if (proofInput.files[0]) {
+      showToast('info', '☁️', 'Uploading proof image...');
+      proofImageUrl = await uploadImageToSupabase(proofInput.files[0], 'reports');
+    } else {
+      // Use the detection image already uploaded
+      proofImageUrl = document.getElementById('report-img-preview').src || null;
+      if (proofImageUrl && proofImageUrl.startsWith('blob:')) proofImageUrl = null; // don't send blob
+    }
+
+    const reportPayload = {
+      damage_type:   damageType,
+      severity:      state.selectedSeverity || 'medium',
+      location:      location,
+      description:   desc,
+      reporter_name: document.getElementById('report-name').value    || 'Anonymous',
+      contact:       document.getElementById('report-contact').value || '',
+      image_url:     proofImageUrl,
+      confidence:    document.getElementById('report-confidence').value || '',
+      status:        'pending',
+    };
+
+    // 1️⃣ Save to Supabase "reports" table
+    showToast('info', '🗄️', 'Saving to Supabase database...');
+    const saved = await saveReportToSupabase(reportPayload);
+
+    if (saved) {
+      showToast('success', '✅', `Report ${saved.id ?? ''} saved to Supabase`);
+      reportPayload.id         = saved.id;
+      reportPayload.created_at = saved.created_at;
+    } else {
+      // Fallback: local ID if Supabase fails
+      reportPayload.id         = genId();
+      reportPayload.created_at = new Date().toISOString();
+      showToast('info', '⚠️', 'Supabase save failed — stored locally');
+    }
+
+    // Also mirror to Flask SQLite if backend is up
+    try {
+      await fetch(`${BACKEND_URL}/report`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(reportPayload),
+      });
+    } catch { /* backend optional */ }
+
+    // 2️⃣ Fire n8n webhook (municipality notification)
+    showToast('info', '⚡', 'Triggering n8n automation...');
+    await triggerN8nWebhook(reportPayload);
+
+    // 3️⃣ Update local state & UI
+    state.reports.push(reportPayload);
+    updateReportsTable();
+    updateDashboard();
+    animateCounter(document.getElementById('counter-rep'), state.reports.length);
+    animateCounter(document.getElementById('dash-reports'),  state.reports.length);
+
+    submitBtn.disabled    = false;
+    submitBtn.textContent = '🚨 Submit Report →';
+
+    document.getElementById('success-modal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('success-modal').classList.remove('open');
+  }
+
+  function scrollToReport() {
+    document.getElementById('report').scrollIntoView({ behavior: 'smooth' });
+    showToast('info', '📋', 'Fill in the report form below');
+  }
+
+  // ══════════════════════════════════════════════════
+  //  📊  DASHBOARD
+  // ══════════════════════════════════════════════════
+  function updateDashboard() {
+    const { total, potholes, cracks, manholes } = state.counters;
+    animateCounter(document.getElementById('dash-total'),    total);
+    animateCounter(document.getElementById('dash-potholes'), potholes);
+    animateCounter(document.getElementById('dash-cracks'),   cracks);
+    animateCounter(document.getElementById('counter-det'),   total);
+
+    if (total > 0) {
+      const pp = Math.round((potholes / total) * 100);
+      const cp = Math.round((cracks   / total) * 100);
+      const mp = Math.round((manholes / total) * 100);
+      document.getElementById('bar-pothole').style.width  = pp + '%';
+      document.getElementById('bar-crack').style.width    = cp + '%';
+      document.getElementById('bar-manhole').style.width  = mp + '%';
+      document.getElementById('bar-pothole-pct').textContent = pp + '%';
+      document.getElementById('bar-crack-pct').textContent   = cp + '%';
+      document.getElementById('bar-manhole-pct').textContent = mp + '%';
+    }
+  }
+
+  function updateReportsTable() {
+    const tbody  = document.getElementById('reports-tbody');
+    tbody.innerHTML = '';
+    const recent = [...state.reports].reverse().slice(0, 6);
+    if (recent.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text3);font-family:\'Space Mono\',monospace;font-size:11px;">No reports yet — submit a report to see it here</td></tr>';
+      return;
+    }
+    recent.forEach(r => {
+      const tr       = document.createElement('tr');
+      const sev      = (r.severity || 'medium').toLowerCase();
+      const sevColor = sev === 'high' ? 'var(--danger)' : sev === 'medium' ? 'var(--warning)' : 'var(--accent3)';
+      const dtype    = r.damage_type || r.type || '—';
+      const rid      = r.id ? String(r.id).slice(0, 12) : '—';
+      tr.innerHTML   = `
+        <td style="font-family:'Space Mono',monospace;font-size:11px;color:var(--text3)">${rid}</td>
+        <td><strong>${dtype}</strong></td>
+        <td style="font-size:12px;color:var(--text2);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.location || '—'}</td>
+        <td><span style="color:${sevColor};font-family:'Space Mono',monospace;font-size:10px;font-weight:700">${sev.toUpperCase()}</span></td>
+        <td><span class="status-dot pending"></span><span style="font-size:12px">${r.status || 'Pending'}</span></td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ══════════════════════════════════════════════════
+  //  🔁  REAL-TIME SUPABASE LISTENER
+  // ══════════════════════════════════════════════════
+  function subscribeToReports() {
+    sb.channel('reports-realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reports' }, (payload) => {
+        const newReport = payload.new;
+        // avoid duplicate if we just inserted it ourselves
+        if (!state.reports.find(r => r.id === newReport.id)) {
+          state.reports.push(newReport);
+          updateReportsTable();
+          state.counters.total++;
+          updateDashboard();
+          animateCounter(document.getElementById('dash-reports'), state.reports.length);
+          showToast('info', '🔔', `New report from ${newReport.reporter_name || 'someone'}`);
+        }
+      })
+      .subscribe();
+  }
+
+  // ── Scrollspy ──
+  const sections = document.querySelectorAll('section');
+  const navLinks = document.querySelectorAll('.nav-links a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 200) current = s.id; });
+    navLinks.forEach(a => {
+      a.classList.remove('active');
+      if (a.getAttribute('href') === '#' + current) a.classList.add('active');
+    });
+  });
+
+  // ══════════════════════════════════════════════════
+  //  🚀  INIT — load Supabase data on page load
+  // ══════════════════════════════════════════════════
+  document.addEventListener('DOMContentLoaded', async () => {
+    showToast('info', '🔌', 'Connecting to Supabase...');
+
+    // Load existing reports
+    const existingReports = await loadReportsFromSupabase();
+    if (existingReports.length > 0) {
+      state.reports = existingReports;
+      updateReportsTable();
+      animateCounter(document.getElementById('dash-reports'), existingReports.length);
+      animateCounter(document.getElementById('counter-rep'),  existingReports.length);
+      showToast('success', '🗄️', `Loaded ${existingReports.length} reports from Supabase`);
+    }
+
+    // Load stats
+    const stats = await loadStatsFromSupabase();
+    if (stats) {
+      state.counters.total    = stats.totalDet;
+      state.counters.potholes = stats.ph;
+      state.counters.cracks   = stats.cr;
+      state.counters.manholes = stats.mh;
+      updateDashboard();
+      animateCounter(document.getElementById('counter-det'), stats.totalDet);
+    }
+
+    // Subscribe to realtime inserts
+    subscribeToReports();
+
+    showToast('success', '✅', 'RoadScan AI connected & ready');
+  });
+</script>
+</body>
+</html>
