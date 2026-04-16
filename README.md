@@ -5,28 +5,28 @@
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6;">
 
-    <h1>🚧 AI Road Damage Detection System</h1>
+<h1>🚧 AI Road Damage Detection System</h1>
 
-    <h2>📌 Overview</h2>
+<h2>📌 Overview</h2>
     <p>
         This project is an AI-powered system that detects road damages such as 
         <b>potholes, cracks, and manholes</b> using a YOLO model.
         It integrates real-time detection, web interface, and automation alerts.
     </p>
 
-    <h2>🎯 Problem Statement</h2>
+   <h2>🎯 Problem Statement</h2>
     <ul>
         <li>Accidents due to poor road conditions 🚑</li>
         <li>Traffic delays 🚗</li>
         <li>Manual inspection is slow ❌</li>
     </ul>
 
-    <h2>💡 Solution</h2>
+   <h2>💡 Solution</h2>
     <pre>
 User → Frontend → Flask → YOLO → n8n → Email Alert 🚨
     </pre>
 
-    <h2>🧠 Features</h2>
+   <h2>🧠 Features</h2>
     <ul>
         <li>Detect potholes, cracks, and manholes</li>
         <li>Image upload detection 📷</li>
@@ -35,7 +35,7 @@ User → Frontend → Flask → YOLO → n8n → Email Alert 🚨
         <li>Automated alerts using n8n 📩</li>
     </ul>
 
-    <h2>🧰 Tech Stack</h2>
+   <h2>🧰 Tech Stack</h2>
     <table border="1" cellpadding="8">
         <tr>
             <th>Layer</th>
@@ -59,7 +59,7 @@ User → Frontend → Flask → YOLO → n8n → Email Alert 🚨
         </tr>
     </table>
 
-    <h2>📂 Project Structure</h2>
+   <h2>📂 Project Structure</h2>
     <pre>
 road-ai-project/<br>
 │<br>
@@ -69,14 +69,14 @@ road-ai-project/<br>
 ├── README.html<br>
     </pre>
 
-    <h2>⚙️ Setup</h2>
+   <h2>⚙️ Setup</h2>
     <pre>
 cd backend
 pip install -r requirements.txt
 python app.py
     </pre>
 
-    <h2>🔄 API</h2>
+   <h2>🔄 API</h2>
     <pre>
 POST /detect
 
@@ -87,12 +87,12 @@ Response:
 }
     </pre>
 
-    <h2>🔔 Automation</h2>
+   <h2>🔔 Automation</h2>
     <p>
         Workflow: Webhook → IF (High Severity) → Email Alert 🚨
     </p>
 
-    <h2>🚀 Future Scope</h2>
+   <h2>🚀 Future Scope</h2>
     <ul>
         <li>GPS-based detection 📍</li>
         <li>Municipality integration 🏛️</li>
@@ -100,12 +100,12 @@ Response:
         <li>Mobile app 📱</li>
     </ul>
 
-    <h2>🏁 Conclusion</h2>
+   <h2>🏁 Conclusion</h2>
     <p>
         This project shows how AI + Automation can improve road safety and smart city infrastructure.
     </p>
 
-    <h3>⭐ Give this project a star on GitHub!</h3>
+   <h3>⭐ Give this project a star on GitHub!</h3>
 
 </body>
 </html>
