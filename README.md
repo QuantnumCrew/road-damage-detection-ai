@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>AI Road Damage Detection</title>
-</head>
+
 <body style="font-family: Arial, sans-serif; line-height: 1.6;">
 
 <h1>🚧 AI Road Damage Detection System</h1>
