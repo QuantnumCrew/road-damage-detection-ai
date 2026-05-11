@@ -42,7 +42,7 @@ SUPABASE_URL    = "https://pjlwnrbsrphaokimeuqw.supabase.co"
 SUPABASE_KEY    = "sb_publishable_GrE3E-zYTyzrKtMBxZjMvw_MSfcomdm"
 N8N_WEBHOOK_URL = "https://pername2k007.app.n8n.cloud/webhook-test/road-damage"
 
-MODEL_PATH      = "best.pt"
+MODEL_PATH = "backend/model/best.pt"
 FALLBACK_MODEL  = "yolov8n.pt"
 UPLOAD_DIR      = Path("uploads")
 DB_PATH         = "roadscan.db"
