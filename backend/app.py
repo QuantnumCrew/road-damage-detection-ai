@@ -40,7 +40,7 @@ import sqlite3  # always-on local fallback
 # ════════════════════════════════════════════
 SUPABASE_URL    = "https://pjlwnrbsrphaokimeuqw.supabase.co"
 SUPABASE_KEY    = "sb_publishable_GrE3E-zYTyzrKtMBxZjMvw_MSfcomdm"
-N8N_WEBHOOK_URL = "https://jayashree2k007.app.n8n.cloud/webhook/road-damage"
+N8N_WEBHOOK_URL = "https://pername2k007.app.n8n.cloud/webhook-test/road-damage"
 
 MODEL_PATH      = "best.pt"
 FALLBACK_MODEL  = "yolov8n.pt"
